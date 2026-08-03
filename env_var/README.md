@@ -8,7 +8,7 @@ For Windows, set persistent user environment variables by running:
 just export-env
 ```
 
-For Linux, normalize line endings once after copying from Windows:
+For Linux, copy it to `$HOME` and normalize line endings:
 
 ```bash
 sed -i 's/\r$//' "$HOME/.env_var"
