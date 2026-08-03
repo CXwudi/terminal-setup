@@ -1,0 +1,51 @@
+# PowerShell-backed recipes for importing .env_var into the current user's
+# persistent Windows environment variables.
+
+set shell := ["powershell.exe", "-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command"]
+set windows-shell := ["powershell.exe", "-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command"]
+
+# List available recipes.
+default:
+  @just --list
+
+# Export bash-style `export NAME=value` lines into User environment variables.
+# Usage from this folder: just export-env
+# Usage from repo root: just -f env_var/justfile export-env
+# Usage with a custom file: just export-env path/to/.env_var
+export-env env_file=".env_var":
+  $ErrorActionPreference = 'Stop'; \
+  $envFileArg = '{{env_file}}'; \
+  if ([System.IO.Path]::IsPathRooted($envFileArg)) { \
+    $envFile = $envFileArg; \
+  } else { \
+    $envFile = Join-Path '{{justfile_directory()}}' $envFileArg; \
+  }; \
+  if (-not (Test-Path -LiteralPath $envFile)) { throw "Env file not found: $envFile" }; \
+  $lineNumber = 0; \
+  $setCount = 0; \
+  $unchangedCount = 0; \
+  foreach ($rawLine in Get-Content -LiteralPath $envFile) { \
+    $lineNumber++; \
+    $line = $rawLine.Trim(); \
+    if ($line -eq '' -or $line.StartsWith('#')) { continue }; \
+    if ($line -notmatch '^export\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$') { \
+      Write-Warning "Skipping line ${lineNumber}: expected export NAME=value"; \
+      continue; \
+    }; \
+    $name = $Matches[1]; \
+    $value = $Matches[2].Trim(); \
+    if (($value.Length -ge 2) -and (($value[0] -eq '"' -and $value[$value.Length - 1] -eq '"') -or ($value[0] -eq "'" -and $value[$value.Length - 1] -eq "'"))) { \
+      $value = $value.Substring(1, $value.Length - 2); \
+    }; \
+    $currentValue = [Environment]::GetEnvironmentVariable($name, 'User'); \
+    if ($null -ne $currentValue -and $currentValue -ceq $value) { \
+      Write-Host "Unchanged user env var: $name"; \
+      $unchangedCount++; \
+      continue; \
+    }; \
+    [Environment]::SetEnvironmentVariable($name, $value, 'User'); \
+    Set-Item -Path "Env:$name" -Value $value; \
+    Write-Host "Set user env var: $name"; \
+    $setCount++; \
+  }; \
+  Write-Host "Done. Set $setCount user env var(s); $unchangedCount already unchanged. Restart terminals/apps to pick up changes."

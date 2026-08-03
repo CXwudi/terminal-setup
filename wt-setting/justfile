@@ -1,0 +1,71 @@
+set script-interpreter := ['pwsh.exe', '-NoLogo', '-NoProfile', '-File']
+
+# Backup both Windows Terminal and PowerShell config files into this directory.
+backup: backup-terminal backup-powershell
+
+# Restore both Windows Terminal and PowerShell config files from this directory.
+restore: restore-terminal restore-powershell
+
+# Backup the current Windows Terminal settings into this directory.
+[script]
+backup-terminal:
+  $repoFile = Join-Path '{{ justfile_directory() }}' 'settings.json'
+  $candidates = @(
+    (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json')
+    (Join-Path $env:LOCALAPPDATA 'Microsoft\Windows Terminal\settings.json')
+    (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json')
+  )
+  $source = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+  if (-not $source) {
+    throw 'Unable to find Windows Terminal settings.json in the expected locations.'
+  }
+
+  Copy-Item -LiteralPath $source -Destination $repoFile -Force
+
+# Restore Windows Terminal settings from this directory.
+[script]
+restore-terminal:
+  $repoFile = Join-Path '{{ justfile_directory() }}' 'settings.json'
+
+  if (-not (Test-Path $repoFile)) {
+    throw "Missing repo settings file: $repoFile"
+  }
+
+  $candidates = @(
+    (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json')
+    (Join-Path $env:LOCALAPPDATA 'Microsoft\Windows Terminal\settings.json')
+    (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json')
+  )
+  $target = $candidates | Where-Object { Test-Path (Split-Path -Parent $_) } | Select-Object -First 1
+
+  if (-not $target) {
+    $target = $candidates[0]
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target) | Out-Null
+  }
+
+  Copy-Item -LiteralPath $repoFile -Destination $target -Force
+
+# Backup the current PowerShell profile into this directory.
+[script]
+backup-powershell:
+  $repoFile = Join-Path '{{ justfile_directory() }}' 'Microsoft.PowerShell_profile.ps1'
+
+  if (-not (Test-Path $PROFILE)) {
+    throw "PowerShell profile not found: $PROFILE"
+  }
+
+  Copy-Item -LiteralPath $PROFILE -Destination $repoFile -Force
+
+# Restore the PowerShell profile from this directory.
+[script]
+restore-powershell:
+  $repoFile = Join-Path '{{ justfile_directory() }}' 'Microsoft.PowerShell_profile.ps1'
+
+  if (-not (Test-Path $repoFile)) {
+    throw "Missing repo profile file: $repoFile"
+  }
+
+  $targetDir = Split-Path -Parent $PROFILE
+  New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
+  Copy-Item -LiteralPath $repoFile -Destination $PROFILE -Force
