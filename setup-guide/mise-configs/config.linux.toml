@@ -6,12 +6,11 @@ codex = "latest"
 bun = "latest"
 deno = "latest"
 markdownlint-cli2 = "latest"
-pi = "latest"
 just = "latest"
 "npm:agent-browser" = { version = "latest", npm_args = "--ignore-scripts=false" }
 "npm:@googleworkspace/cli" = { version = "latest", npm_args = "--ignore-scripts=false" }
 pnpm = "latest"
-claude = "latest"
-"npm:@lobehub/cli" = { version = "latest", npm_args = "--ignore-scripts=false" }
 "npm:@jackwener/opencli" = { version = "latest", npm_args = "--ignore-scripts=false" }
 antigravity-cli = "latest"
+pi = "latest"
+"npm:@officecli/officecli" = { version = "latest", npm_args = "--ignore-scripts=false" }
