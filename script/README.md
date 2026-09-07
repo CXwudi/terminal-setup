@@ -14,3 +14,7 @@ Action: Start a program
 
 Program: `C:\Program Files\PowerShell\7\pwsh.exe`
 Arguments: `-NoLogo -ExecutionPolicy Bypass -File "%USERPROFILE%\.local\bin\ai-tools-update.startup.ps1"`
+
+## Remove US English Script
+
+Sometime Apex Legend will add back English (US), this script can be used to remove it while preserving existing language layouts
