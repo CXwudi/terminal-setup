@@ -1,0 +1,6 @@
+# Keep sourced shell files and executable scripts portable across Windows/WSL.
+*.sh text eol=lf
+*.zsh text eol=lf
+.zshenv text eol=lf
+.zprofile text eol=lf
+.env_var.template text eol=lf

@@ -1,12 +1,32 @@
 [tools]
-deno = "latest"
+# Runtime managers
+uv = "latest"
+pnpm = "latest"
+
+# Runtimes and development environment
+java = "lts"
 node = "lts"
 bun = "latest"
+
+# CLI tools
 markdownlint-cli2 = "latest"
+antigravity-cli = "latest"
+just = "latest"
+
+# Node CLIs installed by mise
 "npm:agent-browser" = { version = "latest", npm_args = "--ignore-scripts=false" }
 "npm:@googleworkspace/cli" = { version = "latest", npm_args = "--ignore-scripts=false" }
 "npm:@openai/codex" = { version = "latest", npm_args = "--ignore-scripts=false" }
-pnpm = "latest"
-"npm:@jackwener/opencli" = { version = "latest", npm_args = "--ignore-scripts=false" }
+"npm:@jackwener/opencli" = { version = "1.8.7", npm_args = "--ignore-scripts=false" }
 "npm:@earendil-works/pi-coding-agent" = { version = "latest", npm_args = "--ignore-scripts=false" }
-antigravity-cli = "latest"
+
+# Python CLIs installed by mise through uv
+"pypi:ast-outline" = "latest"
+"pypi:ninja" = "latest"
+
+# CLIs from other mise backends
+"github:redhat-et/ripwire" = "latest"
+"github:jgraph/drawio-desktop" = "latest"
+
+[settings]
+java.shorthand_vendor = "liberica"
