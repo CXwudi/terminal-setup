@@ -1,96 +1,56 @@
-# How to setup oh my zsh + powerlevel10k
+# Set Up Zsh, Oh My Zsh, and Powerlevel10k
 
-<!-- markdownlint-disable MD013 -->
+These commands target Debian/WSL. Run them from the repository root.
 
-website:
+## 1. Install a terminal font
 
-1. [oh my zsh](https://github.com/ohmyzsh/ohmyzsh/wiki)
-2. [powerlevel10k](https://github.com/romkatv/powerlevel10k#getting-started)
+Install [MesloLGS NF using Powerlevel10k's font instructions](https://github.com/romkatv/powerlevel10k#manual-font-installation). Configure the font in Windows Terminal, VS Code, or the IDE terminal that displays your WSL session.
 
-## 1. Install Meslo Nerd Font
-
-Some common terminals:
-
-- Windows Terminal for WSL
-- Ubuntu default terminal
-- VSCode terminal
-- Intellij terminal
-
-## 2. Install Oh My Zsh and Plugins
+## 2. Install the shell and base packages
 
 ```bash
 sudo apt update
-sudo apt install curl git zsh python3 ripgrep tree fzf rsync lsd tmux -y
+sudo apt install -y ca-certificates curl git zsh openssh-client ripgrep fzf rsync lsd tmux unzip
+
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-
-git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/themes/powerlevel10k
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
-git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-git clone https://github.com/Pilaton/OhMyZsh-full-autoupdate ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/ohmyzsh-full-autoupdate
 ```
 
-## 3. (Optional) Install Homebrew
+Install the theme and additional plugins:
 
 ```bash
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
+git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git "$HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
+git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git "$HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
+git clone --depth=1 https://github.com/Pilaton/OhMyZsh-full-autoupdate.git "$HOME/.oh-my-zsh/custom/plugins/ohmyzsh-full-autoupdate"
 ```
 
-and follow homebrew instruction in console to finish setting up homebrew.
+These paths use Oh My Zsh's default custom directory. Adjust them if you configured `ZSH_CUSTOM` elsewhere.
 
-you might want to do `cat .zprofile >> .zshrc` so that in-GUI terminal can get
-brew
+## 3. Configure Zsh startup files
+
+Follow the [Zsh configuration guide](../zsh-setting/) to copy `.zshenv` and `.zprofile`, then merge the two sections of `zshrc.custom.zsh` into the generated `~/.zshrc`.
+
+The shared environment belongs in `.zshenv`, login initialization in `.zprofile`, and interactive configuration in `.zshrc`. The custom fragment includes the Powerlevel10k theme, plugin list, `lsd` alias, `NOMATCH` preference, and mise activation. The activation guard allows this base setup to run before mise is installed.
+
+For private exports, follow the [environment-variable guide](../env_var/). The editor defaults to `code --wait`; adjust `EDITOR` in `.zshenv` if you use another editor.
+
+## 4. Start Zsh and configure the prompt
+
+Set Zsh as the default shell:
 
 ```bash
-brew install python3
-```
-
-## 4. Configure Theme and Plugins
-
-```bash
-# Set ZSH_THEME in ~/.zshrc
-sed -i.bak 's/ZSH_THEME=".*"/ZSH_THEME="powerlevel10k\/powerlevel10k"/' ~/.zshrc
-
-# Add plugins to ~/.zshrc
-plugins='(git z dirhistory fzf aliases docker docker-compose common-aliases zsh-syntax-highlighting zsh-autosuggestions ohmyzsh-full-autoupdate)'
-sed -i.bak "s/plugins=(.*)/plugins=${plugins}/" ~/.zshrc
-
-# Add bin to PATH to ~/.zprofile
-echo 'export PATH="$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH"' >> ~/.zprofile
-
-# Add ssh-agent setup to ~/.zprofile
-cat <<'EOF' >> ~/.zprofile
-if [ -z "$SSH_AUTH_SOCK" ]; then
-  # Check for a currently running instance of the agent
-  RUNNING_AGENT="`ps -ax | grep 'ssh-agent -s' | grep -v grep | wc -l | tr -d '[:space:]'`"
-  if [ "$RUNNING_AGENT" = "0" ]; then
-    # Launch a new instance of the agent
-    ssh-agent -s &> "$HOME/.ssh/ssh-agent"
-  fi
-  eval `cat "$HOME/.ssh/ssh-agent"` 2>&1 >/dev/null
-fi
-EOF
-
-
-# Add alias
-echo "alias ls='lsd'" >> ~/.zshrc
-
-# Add editor
-echo 'export EDITOR="code --wait"' >> ~/.zshrc
-
-# Add Bash Compatible
-echo 'unsetopt NOMATCH' >> ~/.zshrc
-
-# Change default shell to zsh
 chsh -s /usr/bin/zsh
 ```
 
-## 5. Run Powerlevel10k Configuration Wizard
+Open a new terminal. Run the Powerlevel10k wizard and choose the desired appearance:
 
-Use this quick configuration to setup the default style shown in the
-[github repo](https://raw.githubusercontent.com/romkatv/powerlevel10k-media/master/configuration-wizard.gif):
-
-```shall
+```zsh
 p10k configure
+```
+
+To reproduce my prompt setup, enter the following responses in order, one at each wizard prompt:
+
+```text
 y
 y
 y
@@ -113,3 +73,9 @@ y
 1
 y
 ```
+
+The prompts can vary with the terminal, font, and Powerlevel10k version. Follow the questions displayed by your wizard if they differ from this sequence.
+
+Keep the wizard's generated instant-prompt block near the top of `.zshrc`, and keep one source of `~/.p10k.zsh` after Oh My Zsh initialization.
+
+Continue with [Zsh - Further Setup](./Zsh%20-%20Further%20Setup.md).

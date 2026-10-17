@@ -1,246 +1,183 @@
-# Further Setup (C Drive) - scoop, uv, mise, node, pnpm, bun, AI CLIs
+# Further PowerShell Setup: C Drive
 
-<!-- markdownlint-disable MD013 -->
+Use this guide for the default Windows user directories. Complete [PowerShell - Setup](./PowerShell%20-%20Setup.md) first.
 
-Use this guide if you want the default Windows install locations on `C:`.
+Run the steps in order in one PowerShell 7 session, starting from the repository root. The [Windows configuration backup](./mise-configs/config.windows.toml) supplies every mise tool declaration.
 
-## 1. Install Scoop (Windows)
-
-Scoop is a command-line installer for Windows that makes it easy to install and
-manage CLI tools.
+## 1. Install Scoop and system CLIs
 
 ```powershell
-# Set execution policy (required for Scoop)
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-
-# Install Scoop
 irm get.scoop.sh | iex
-
-# Verify installation
-scoop --version
-Get-Command scoop
-
-# Install git (required for bucket management)
 scoop install git
-
-# Add extras bucket (optional, for more apps)
 scoop bucket add extras
+scoop install yq ast-grep ripgrep lsd fzf gh psmux
 ```
 
-The installer automatically installs Scoop to `$HOME\scoop` and adds it to PATH.
+Scoop owns these system CLIs. `just` comes from the mise configuration in step 4.
 
-> **Note:** The extras bucket is needed for some tools like `lsd` in Step 2.
+## 2. Define the default directories
 
-## 2. Install CLI tools via Scoop
-
-After Scoop is installed and the extras bucket is added, install these CLI
-tools:
+Keep the following variables in the current session for the remaining steps:
 
 ```powershell
-# Install CLI tools via Scoop
-scoop install yq           # YAML/JSON processor
-scoop install ast-grep     # structural code search (alias: sg)
-scoop install ripgrep      # fast text search (rg)
-scoop install lsd          # modern ls command (from extras bucket)
-scoop install just         # modern command runner
-scoop install fzf          # fuzzy finder (just's suggestion)
-scoop install gh           # GitHub CLI
-scoop install psmux        # tmux-like terminal multiplexer for PowerShell
+$repoRoot = (Get-Location).Path
+$toolBinDir = Join-Path $env:USERPROFILE '.local\bin'
+$miseDataDir = Join-Path $env:LOCALAPPDATA 'mise'
+$miseConfigDir = Join-Path $env:USERPROFILE '.config\mise'
+$miseShimDir = Join-Path $miseDataDir 'shims'
+$uvBinDir = $toolBinDir
 ```
 
-## 3. Install uv (Windows)
+| Location | Purpose |
+| --- | --- |
+| `%USERPROFILE%\.local\bin` | Portable mise, its companion shim executable, personal scripts, and uv tool/Python entries |
+| `%USERPROFILE%\.config\mise\config.toml` | Global mise declarations |
+| `%LOCALAPPDATA%\mise` | mise-installed tools and shims |
+| `%APPDATA%\uv\data` | uv-managed Python interpreters and direct tool environments |
+| `%LOCALAPPDATA%\uv\cache` | uv package cache |
+| `%LOCALAPPDATA%\pnpm` | pnpm data, selected by `PNPM_HOME` |
+
+These are default locations on a fresh Windows user profile. Windows known folders may resolve to another drive if redirected. [mise directories](https://mise.jdx.dev/directories.html), [uv storage](https://docs.astral.sh/uv/reference/storage/)
+
+## 3. Install portable mise and configure PATH
+
+Download the current `windows-x64.zip` release from [mise releases](https://github.com/jdx/mise/releases/latest), extract it, and locate its `mise\bin` directory containing `mise.exe` and `mise-shim.exe`. When prompted below, enter that extracted directory. [Official Windows instructions](https://mise.jdx.dev/installing-mise.html#manual-install-on-windows)
 
 ```powershell
-# Install uv using the official PowerShell script
-irm https://astral.sh/uv/install.ps1 | iex
+New-Item -ItemType Directory -Force -Path $toolBinDir | Out-Null
+$miseSourceDir = Read-Host 'Full path to the extracted mise\bin directory'
+Copy-Item -LiteralPath (Join-Path $miseSourceDir 'mise.exe'),(Join-Path $miseSourceDir 'mise-shim.exe') -Destination $toolBinDir
 
-# Verify installation
-uv --version
-Get-Command uv
+# Persist the base environment for terminals, IDEs, and -NoProfile sessions.
+$requiredPaths = @($miseShimDir, $toolBinDir, $uvBinDir) | Select-Object -Unique
+$userPathEntries = [Environment]::GetEnvironmentVariable('Path', 'User') -split ';'
+$newUserPath = ((@($requiredPaths) + @($userPathEntries)) | Where-Object { $_ } | Select-Object -Unique) -join ';'
+[Environment]::SetEnvironmentVariable('Path', $newUserPath, 'User')
+
+# Make the same entries available in this setup session.
+$env:Path = ((@($requiredPaths) + @($env:Path -split ';')) | Where-Object { $_ } | Select-Object -Unique) -join ';'
+mise --version
 ```
 
-The installer should automatically add `$USERPROFILE/.local/bin` to the PATH,
-and put `uv.exe` there.
+Keep `mise.exe` and `mise-shim.exe` together. The shims directory will be populated by mise as tools are installed. This portable installation is updated with `mise self-update`.
 
-### Optional: Manage Python versions with uv
-
-```powershell
-# Install a specific Python version
-uv python install 3.14
-```
-
-## 4. Install tools via uv
-
-The tool `mineru[all]` requires high-end GPU and complicated CUDA setup, always
-best to check latest guide.
+## 4. Copy the global configuration and install tools
 
 ```powershell
-uv tool install 'mineru[all]' --python 3.12
-```
+New-Item -ItemType Directory -Force -Path $miseConfigDir | Out-Null
+Copy-Item -LiteralPath (Join-Path $repoRoot 'setup-guide/mise-configs/config.windows.toml') -Destination (Join-Path $miseConfigDir 'config.toml')
 
-Other tools:
-
-```powershell
-uv tool install ast-outline
-```
-
-## 5. Download and Configure mise for PowerShell
-
-First, download the mise installer using `winget`:
-
-```powershell
-# Get the actual Downloads folder path (handles custom locations)
-$downloadDir = (New-Object -ComObject Shell.Application).NameSpace('shell:Downloads').Self.Path
-$wingetDir = Join-Path $downloadDir 'winget'
-New-Item -ItemType Directory -Force -Path $wingetDir | Out-Null
-
-# Download mise installer
-winget download --id JDX.Mise -d $wingetDir --skip-dependencies
-Write-Host "mise installer downloaded to $wingetDir. Run it manually to complete installation." -ForegroundColor Green
-```
-
-After running the downloaded mise installer, configure mise shims and activate
-it in your PowerShell profile:
-
-```powershell
-# Ensure profile exists
-if (-not (Test-Path $PROFILE)) {
-  New-Item -ItemType File -Path $PROFILE -Force | Out-Null
+Push-Location -LiteralPath $HOME
+try {
+  mise install
+  if ($LASTEXITCODE -ne 0) { throw 'Failed to install the configured tools.' }
 }
-
-# Add mise shims to user PATH (if not already present)
-$shimPath = "$env:USERPROFILE\AppData\Local\mise\shims"
-$userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
-if ($userPath -notlike "*$shimPath*") {
-  $newUserPath = if ([string]::IsNullOrEmpty($userPath)) { $shimPath } else { "$userPath;$shimPath" }
-  [Environment]::SetEnvironmentVariable('Path', $newUserPath, 'User')
+finally {
+  Pop-Location
 }
-
-# Add mise activate on profile
-echo 'mise activate pwsh | Out-String | Invoke-Expression' >> $PROFILE
-
-Write-Host "Profile updated. Restart PowerShell to use mise." -ForegroundColor Green
 ```
 
-## 6. Install Tools via mise
+Review the copied TOML to choose which tools to install. It contains six groups: runtime managers, runtimes/development environment, CLI tools, npm CLIs, Python CLIs, and other backends.
 
-After mise is installed and active in your PowerShell session,
-copy the [`config.windows.toml`](mise-configs/config.windows.toml) into `%USERPROFILE%\.config\mise\config.toml`
+uv manages Python interpreters for the `pypi:` CLIs; ast-outline and ninja do not fix a Python version. Node remains declared for `npm:` CLIs. See [tool ownership](./README.md#tool-ownership).
 
-Then run:
+## 5. Set PNPM_HOME and PATH
 
-```powershell
-# Install tools defined in config.toml
-mise install
-
-# Check versions
-node -v
-pnpm -v
-```
-
-## 7. Set PNPM_HOME and PATH
-
-Run this **once** to permanently configure `PNPM_HOME` as a Windows user
-environment variable and add pnpm's v11 global binary directory to PATH:
+Set pnpm's data root and add its global command directory after the existing mise entries:
 
 ```powershell
-# Set PNPM_HOME to Windows-standard location
-$pnpmHome = "$env:LOCALAPPDATA\pnpm"
+$pnpmHome = Join-Path $env:LOCALAPPDATA 'pnpm'
 $pnpmBinPath = Join-Path $pnpmHome 'bin'
-
-New-Item -ItemType Directory -Force -Path $pnpmHome | Out-Null
 New-Item -ItemType Directory -Force -Path $pnpmBinPath | Out-Null
 
-# Set PNPM_HOME as a permanent user environment variable
 [Environment]::SetEnvironmentVariable('PNPM_HOME', $pnpmHome, 'User')
-
-# Append %PNPM_HOME%\bin to user PATH if not already there
-$pnpmPathEntry = '%PNPM_HOME%\bin'
-$userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
-if ($userPath -notlike "*$pnpmPathEntry*" -and $userPath -notlike "*$pnpmBinPath*") {
-  $newUserPath = if ([string]::IsNullOrEmpty($userPath)) { $pnpmPathEntry } else { "$userPath;$pnpmPathEntry" }
-  [Environment]::SetEnvironmentVariable('Path', $newUserPath, 'User')
-}
-
-# Refresh current session environment
 $env:PNPM_HOME = $pnpmHome
-$env:Path = "$pnpmBinPath;$env:Path"
 
-# Update shims
-mise reshim
+$userPathEntries = [Environment]::GetEnvironmentVariable('Path', 'User') -split ';'
+$newUserPath = ((@($userPathEntries) + @($pnpmBinPath)) | Where-Object { $_ } | Select-Object -Unique) -join ';'
+[Environment]::SetEnvironmentVariable('Path', $newUserPath, 'User')
+$env:Path = ((@($env:Path -split ';') + @($pnpmBinPath)) | Where-Object { $_ } | Select-Object -Unique) -join ';'
 
-Write-Host 'PNPM_HOME and PNPM_HOME\bin configured. Restart your terminal for PATH changes to fully take effect.' -ForegroundColor Green
+mise exec -- pnpm store path
 ```
 
-## 8. Install Global Packages via pnpm
+Keep pnpm's default cache and state locations. mise supplies the pnpm executable; `PNPM_HOME` controls package-manager data.
+
+## 6. Set Bun's global bin PATH
+
+Bun uses its own default data directories. Add its global command directory to PATH:
 
 ```powershell
-# so far empty, we use mise for now
+$bunBinPath = Join-Path $env:USERPROFILE '.bun\bin'
+$userPathEntries = [Environment]::GetEnvironmentVariable('Path', 'User') -split ';'
+$newUserPath = ((@($userPathEntries) + @($bunBinPath)) | Where-Object { $_ } | Select-Object -Unique) -join ';'
+[Environment]::SetEnvironmentVariable('Path', $newUserPath, 'User')
+$env:Path = ((@($env:Path -split ';') + @($bunBinPath)) | Where-Object { $_ } | Select-Object -Unique) -join ';'
 ```
 
-## 9. Set BUN Global Bin Path
+Leave Bun's directory environment variables unset. mise shims remain before both package managers' global bin directories so mise continues to select the executable versions.
 
-Run this **once** to ensure Bun's global binaries are accessible from your PATH:
+## 7. Set the default Java environment and PowerShell profile
 
-Use Bun's default directories. Only add the default bin path to PATH for global
-package binaries.
+After Java installation succeeds, persist its stable global JDK path:
 
 ```powershell
-# Add default Bun bin directory to user PATH if not already present
-$bunBinPath = "$env:USERPROFILE\.bun\bin"
-$userPath = [Environment]::GetEnvironmentVariable('Path', 'User')
-
-if ($userPath -notlike "*$bunBinPath*" -and $userPath -notlike "*\.bun\bin*") {
-  $newUserPath = if ([string]::IsNullOrEmpty($userPath)) { $bunBinPath } else { "$userPath;$bunBinPath" }
-  [Environment]::SetEnvironmentVariable('Path', $newUserPath, 'User')
+$javaHome = Join-Path $miseDataDir 'installs\java\global'
+if (-not (Test-Path -LiteralPath (Join-Path $javaHome 'bin\java.exe'))) {
+  throw 'Install the global Java declaration before setting JAVA_HOME.'
 }
+[Environment]::SetEnvironmentVariable('JAVA_HOME', $javaHome, 'User')
+$env:JAVA_HOME = $javaHome
 
-# Refresh current session PATH
-$env:Path = "$bunBinPath;$env:Path"
-
-Write-Host 'Bun bin path added to PATH. Restart terminal for changes to take effect.' -ForegroundColor Green
+New-Item -ItemType Directory -Force -Path (Split-Path -Parent $PROFILE) | Out-Null
+Copy-Item -LiteralPath (Join-Path $repoRoot 'wt-setting/Microsoft.PowerShell_profile.ps1') -Destination $PROFILE
+code $PROFILE
 ```
 
-## 10. Install SDKMAN via Git Bash
+Set the profile's `$gitBashBin` to the installed Git directory if you want Git Bash preferred over WSL Bash. For this guide's Scoop Git installation, the bin directory is `%USERPROFILE%\scoop\apps\git\current\bin`. The [profile notes](../wt-setting/) explain its contents.
 
-Run this **once** in Git Bash to install SDKMAN and configure your shell (Git
-Bash must be installed):
+Java uses ordinary Liberica and follows the latest LTS when upgraded. mise maintains the `global` link. Profile activation can set the session's project-specific `JAVA_HOME`; commands needing a complete project environment can use `mise exec -- .\gradlew.bat build`. [Java settings](https://mise.jdx.dev/lang/java.html), [global link](https://mise.jdx.dev/ide-integration.html#a-fixed-path-to-the-global-version)
 
-```bash
-# Add zip command (SDKMAN requires it, Git Bash has funzip built-in)
-cp /usr/bin/funzip.exe /usr/bin/zip.exe
+## 8. Optional Python tools and private variables
 
-# Install SDKMAN without modifying .bashrc
-curl -s "https://get.sdkman.io?rcupdate=false" | bash
+Install MinerU separately only when needed:
 
-# Add SDKMAN to .bashrc
-cat >> ~/.bashrc << 'EOF'
-
-# SDKMAN
-export SDKMAN_DIR="$HOME/.sdkman"
-[[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
-EOF
-
-echo "SDKMAN installed. Restart Git Bash to use sdk command."
+```powershell
+mise exec -- uv tool install 'mineru[all]' --python 3.12
 ```
 
-### Install Liberica NIK (GraalVM-based JDK)
+Check [MinerU installation requirements](https://github.com/opendatalab/MinerU#installation) for the backend and hardware you use. Its Python 3.12 environment stays directly managed by uv.
 
-After restarting Git Bash:
+Projects can request Python through uv as needed:
 
-```bash
-# Verify SDKMAN
-sdk version
+```powershell
+mise exec -- uv python install 3.12
+```
 
-# List available Liberica NIK versions
-sdk list java | grep nik
+Follow the [environment-variable guide](../env_var/) to import private settings from `$HOME/.env_var`.
 
-# Install Liberica NIK LTS (example version)
-sdk install java 23.1.5.r21-nik
+## 9. Verify and install update scripts
 
-# Set as default
-sdk default java 23.1.5.r21-nik
+Fully exit and reopen Windows Terminal, the IDE, and other applications that need the persistent environment. In a fresh PowerShell session, check:
 
-# Verify
+```powershell
+mise ls --current
+Get-Command mise,uv,node,pnpm,bun,java,ast-outline,ninja
+uv --version
+node --version
+pnpm --version
 java -version
+& (Join-Path $env:JAVA_HOME 'bin\java.exe') -version
+uv tool list
 ```
+
+Check the inherited base environment without a profile:
+
+```powershell
+pwsh -NoLogo -NoProfile -Command 'Get-Command uv,node,pnpm,java; & (Join-Path $env:JAVA_HOME "bin\java.exe") -version'
+```
+
+mise-managed Python CLIs are separate from the direct uv list; that list contains MinerU if you installed it.
+
+Follow the [update-script guide](../script/) to copy the updater and Task Scheduler launcher into `%USERPROFILE%\.local\bin`.
