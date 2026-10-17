@@ -1,0 +1,89 @@
+[tasks.backup]
+description = "Back up Windows Terminal settings and the PowerShell profile into this directory"
+run = [
+  { task = ":backup-terminal" },
+  { task = ":backup-powershell" },
+]
+
+[tasks.restore]
+description = "Restore Windows Terminal settings and the PowerShell profile from this directory"
+run = [
+  { task = ":restore-terminal" },
+  { task = ":restore-powershell" },
+]
+
+[tasks.backup-terminal]
+description = "Back up the current Windows Terminal settings into this directory"
+shell = "pwsh -NoLogo -NoProfile -Command"
+run = '''
+$ErrorActionPreference = 'Stop'
+$repoFile = Join-Path (Get-Location) 'settings.json'
+$candidates = @(
+  (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json')
+  (Join-Path $env:LOCALAPPDATA 'Microsoft\Windows Terminal\settings.json')
+  (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json')
+)
+$source = $candidates | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+
+if (-not $source) {
+  throw 'Unable to find Windows Terminal settings.json in the expected locations.'
+}
+
+Copy-Item -LiteralPath $source -Destination $repoFile -Force
+'''
+
+[tasks.restore-terminal]
+description = "Restore Windows Terminal settings from this directory"
+shell = "pwsh -NoLogo -NoProfile -Command"
+run = '''
+$ErrorActionPreference = 'Stop'
+$repoFile = Join-Path (Get-Location) 'settings.json'
+
+if (-not (Test-Path -LiteralPath $repoFile)) {
+  throw "Missing repo settings file: $repoFile"
+}
+
+$candidates = @(
+  (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json')
+  (Join-Path $env:LOCALAPPDATA 'Microsoft\Windows Terminal\settings.json')
+  (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json')
+)
+$target = $candidates | Where-Object { Test-Path -LiteralPath (Split-Path -Parent $_) } | Select-Object -First 1
+
+if (-not $target) {
+  $target = $candidates[0]
+  New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target) | Out-Null
+}
+
+Copy-Item -LiteralPath $repoFile -Destination $target -Force
+'''
+
+[tasks.backup-powershell]
+description = "Back up the current PowerShell profile into this directory"
+shell = "pwsh -NoLogo -NoProfile -Command"
+run = '''
+$ErrorActionPreference = 'Stop'
+$repoFile = Join-Path (Get-Location) 'Microsoft.PowerShell_profile.ps1'
+
+if (-not (Test-Path -LiteralPath $PROFILE)) {
+  throw "PowerShell profile not found: $PROFILE"
+}
+
+Copy-Item -LiteralPath $PROFILE -Destination $repoFile -Force
+'''
+
+[tasks.restore-powershell]
+description = "Restore the PowerShell profile from this directory"
+shell = "pwsh -NoLogo -NoProfile -Command"
+run = '''
+$ErrorActionPreference = 'Stop'
+$repoFile = Join-Path (Get-Location) 'Microsoft.PowerShell_profile.ps1'
+
+if (-not (Test-Path -LiteralPath $repoFile)) {
+  throw "Missing repo profile file: $repoFile"
+}
+
+$targetDir = Split-Path -Parent $PROFILE
+New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
+Copy-Item -LiteralPath $repoFile -Destination $PROFILE -Force
+'''

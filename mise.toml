@@ -1,0 +1,8 @@
+monorepo_root = true
+
+[monorepo]
+config_roots = ["env_var", "wt-setting"]
+
+[tasks.default]
+description = "List all repository tasks"
+run = "mise tasks --all --local"

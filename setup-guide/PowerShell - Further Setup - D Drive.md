@@ -15,7 +15,7 @@ scoop bucket add extras
 scoop install yq ast-grep ripgrep lsd fzf gh psmux
 ```
 
-Scoop owns these system CLIs. `just` comes from the mise configuration in step 4.
+Scoop owns these system CLIs. The repository's helper tasks run directly through mise, installed in step 3.
 
 ## 2. Define the D drive directories
 

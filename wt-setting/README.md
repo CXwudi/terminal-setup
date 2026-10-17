@@ -14,3 +14,15 @@ This config contains:
 ## `Microsoft.PowerShell_profile.ps1`
 
 Launch `code $PROFILE` in PowerShell and copy the content of `Microsoft.PowerShell_profile.ps1`
+
+## Backup and restore tasks
+
+With mise and PowerShell 7 installed, run from anywhere in this repository:
+
+```powershell
+mise tasks --all
+mise run //wt-setting:backup
+mise run //wt-setting:restore
+```
+
+`backup` copies the current Windows Terminal settings and PowerShell profile into this directory; `restore` copies those files back, overwriting the installed versions. Run the command for the operation you need. You can also run `//wt-setting:backup-terminal`, `//wt-setting:restore-terminal`, `//wt-setting:backup-powershell`, or `//wt-setting:restore-powershell` separately. Inside `wt-setting/`, use `mise run :backup` or `mise run :restore`. See [mise monorepo tasks](https://mise.jdx.dev/tasks/monorepo.html).

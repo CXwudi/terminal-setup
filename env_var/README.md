@@ -4,11 +4,15 @@ Copy the `.env_var.template` file to `.env_var` at `$HOME` and fill in the value
 
 ## Windows
 
-For Windows, set persistent user environment variables by running:
+After installing mise, run from anywhere in this repository to import the file at `$HOME` into persistent user environment variables:
 
 ```powershell
-just export-env
+mise run //env_var:export-env "$HOME/.env_var"
 ```
+
+To use `env_var/.env_var` instead, run `mise run //env_var:export-env` without a file argument. Relative file paths are resolved from `env_var/`. Inside that directory, use `mise run :export-env [path/to/file]`. Run `mise tasks --all` to list all monorepo tasks. See [mise task arguments](https://mise.jdx.dev/tasks/task-arguments.html).
+
+Restart terminals and applications after importing to pick up the changes.
 
 ## Debian / WSL with Zsh
 

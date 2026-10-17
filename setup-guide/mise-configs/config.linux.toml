@@ -12,7 +12,6 @@ bun = "latest"
 ast-grep = "latest"
 yq = "latest"
 markdownlint-cli2 = "latest"
-just = "latest"
 antigravity-cli = "latest"
 pi = "latest"
 

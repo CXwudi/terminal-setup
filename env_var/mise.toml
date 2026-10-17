@@ -1,0 +1,46 @@
+[tasks.export-env]
+description = "Import export NAME=value lines into persistent Windows user environment variables"
+shell = "powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -Command"
+usage = 'arg "[env_file]" default=".env_var" help="Environment file, relative to env_var/ or absolute"'
+run = '''
+$ErrorActionPreference = 'Stop'
+$envFile = $env:usage_env_file
+if (-not [System.IO.Path]::IsPathRooted($envFile)) {
+  $envFile = Join-Path (Get-Location) $envFile
+}
+if (-not (Test-Path -LiteralPath $envFile)) {
+  throw "Env file not found: $envFile"
+}
+
+$lineNumber = 0
+$setCount = 0
+$unchangedCount = 0
+foreach ($rawLine in Get-Content -LiteralPath $envFile) {
+  $lineNumber++
+  $line = $rawLine.Trim()
+  if ($line -eq '' -or $line.StartsWith('#')) { continue }
+  if ($line -notmatch '^export\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$') {
+    Write-Warning "Skipping line ${lineNumber}: expected export NAME=value"
+    continue
+  }
+
+  $name = $Matches[1]
+  $value = $Matches[2].Trim()
+  if (($value.Length -ge 2) -and (($value[0] -eq '"' -and $value[$value.Length - 1] -eq '"') -or ($value[0] -eq "'" -and $value[$value.Length - 1] -eq "'"))) {
+    $value = $value.Substring(1, $value.Length - 2)
+  }
+
+  $currentValue = [Environment]::GetEnvironmentVariable($name, 'User')
+  if ($null -ne $currentValue -and $currentValue -ceq $value) {
+    Write-Host "Unchanged user env var: $name"
+    $unchangedCount++
+    continue
+  }
+
+  [Environment]::SetEnvironmentVariable($name, $value, 'User')
+  Set-Item -Path "Env:$name" -Value $value
+  Write-Host "Set user env var: $name"
+  $setCount++
+}
+Write-Host "Done. Set $setCount user env var(s); $unchangedCount already unchanged. Restart terminals/apps to pick up changes."
+'''

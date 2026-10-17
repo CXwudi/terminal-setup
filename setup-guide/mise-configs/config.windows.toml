@@ -11,7 +11,6 @@ bun = "latest"
 # CLI tools
 markdownlint-cli2 = "latest"
 antigravity-cli = "latest"
-just = "latest"
 
 # Node CLIs installed by mise
 "npm:agent-browser" = { version = "latest", npm_args = "--ignore-scripts=false" }
