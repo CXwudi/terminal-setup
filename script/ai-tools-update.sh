@@ -1,25 +1,22 @@
 #!/bin/bash
-set -e
+# Update global tools from the user's home, outside project mise configurations.
+set -euo pipefail
 
-echo "🚀 Starting update process..."
+cd "$HOME"
+mise_bin="$HOME/.local/bin/mise"
+if [[ ! -x "$mise_bin" ]]; then
+  mise_bin="$(command -v mise)"
+fi
 
-# --- MISE ---
-echo "📦 Updating mise core and tools..."
-mise self-update -y
-mise up
+echo "Starting update process..."
+echo "Updating mise and its managed tools..."
+"$mise_bin" self-update -y
+"$mise_bin" upgrade
 
-# --- UV ---
-echo "🐍 Updating uv and tools..."
-uv self update
-uv tool upgrade --all
+echo "Updating tools managed directly by uv..."
+"$mise_bin" exec -- uv tool upgrade --all
 
-# --- PNPM ---
-echo "📦 Updating global pnpm packages & approving builds..."
-pnpm up -g --latest
-pnpm approve-builds --all
+echo "Updating Pi extensions..."
+"$mise_bin" exec -- pi update --extensions
 
-# --- PI ---
-echo "🤖 Updating Pi plugins..."
-pi update --extensions
-
-echo "✅ All updates complete!"
+echo "All updates complete!"

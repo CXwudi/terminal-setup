@@ -1,55 +1,44 @@
-# Sets the preference for PowerShell native cmdlets to stop on error
+# Update global tools from the user's home, outside project mise configurations.
 $ErrorActionPreference = 'Stop'
 
-# Helper function to stop script if an external program (like scoop/npm) fails
+# Stop before the next update step when a native command fails.
 function Check-Exit {
     if ($LASTEXITCODE -ne 0) {
-        Write-Error "Execution stopped due to error."
-        exit $LASTEXITCODE
+        throw "Update command failed with exit code $LASTEXITCODE."
     }
 }
 
-Write-Host "🚀 Starting update process..." -ForegroundColor Cyan
+# Use the executable directly, including when a profile defines a mise function.
+$miseBin = (Get-Command mise -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
 
-# --- SCOOP ---
-Write-Host "🍨 Updating scoop..." -ForegroundColor Green
-scoop update
-Check-Exit
+Push-Location -LiteralPath $HOME
+try {
+    Write-Host "🚀 Starting update process..." -ForegroundColor Cyan
 
-scoop update *
-Check-Exit
+    Write-Host "🍨 Updating Scoop and its tools..." -ForegroundColor Green
+    scoop update
+    Check-Exit
+    scoop update '*'
+    Check-Exit
+    scoop cleanup '*'
+    Check-Exit
 
-scoop cleanup *
-Check-Exit
+    Write-Host "📦 Updating mise and its managed tools..." -ForegroundColor Green
+    & $miseBin self-update -y
+    Check-Exit
+    & $miseBin upgrade
+    Check-Exit
 
-# --- MISE ---
-Write-Host "📦 Updating mise core and tools..." -ForegroundColor Green
-mise self-update -y
-Check-Exit
+    Write-Host "🐍 Updating tools managed directly by uv..." -ForegroundColor Green
+    & $miseBin exec -- uv tool upgrade --all
+    Check-Exit
 
-mise up
-Check-Exit
+    Write-Host "🤖 Updating Pi extensions..." -ForegroundColor Green
+    & $miseBin exec -- pi update --extensions
+    Check-Exit
 
-# --- UV ---
-Write-Host "🐍 Updating uv and tools..." -ForegroundColor Green
-uv self update
-Check-Exit
-
-uv tool upgrade --all
-Check-Exit
-
-# --- PNPM --- 
-Write-Host "📦 Updating global pnpm packages & approving builds..." -ForegroundColor Green
-pnpm up -g --latest
-Check-Exit
-
-pnpm approve-builds --all
-Check-Exit
-
-## --- PI ---
-Write-Host "🤖 Updating Pi plugins..." -ForegroundColor Green
-pi update --extensions
-Check-Exit
-
-Write-Host "✅ All updates complete!" -ForegroundColor Cyan
-
+    Write-Host "✅ All updates complete!" -ForegroundColor Cyan
+}
+finally {
+    Pop-Location
+}
