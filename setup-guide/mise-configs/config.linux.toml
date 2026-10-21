@@ -9,18 +9,22 @@ node = "lts"
 bun = "latest"
 
 # CLI tools
+ffmpeg = "latest"
 ast-grep = "latest"
+gh = "latest"
+ripgrep = "latest"
 yq = "latest"
 markdownlint-cli2 = "latest"
 antigravity-cli = "latest"
 pi = "latest"
 
 # Node CLIs installed by mise
+"npm:@openai/codex" = "latest"
 "npm:agent-browser" = { version = "latest", npm_args = "--ignore-scripts=false" }
 "npm:@googleworkspace/cli" = { version = "latest", npm_args = "--ignore-scripts=false" }
-"npm:@jackwener/opencli" = { version = "1.8.7", npm_args = "--ignore-scripts=false" } # 1.8.8 failed npm provenance verification.
+# Allow future OpenCLI releases without provenance: https://github.com/jackwener/OpenCLI/issues/2622
+"npm:@jackwener/opencli" = { version = "latest", npm_args = "--ignore-scripts=false", trust_policy_excludes = ["@jackwener/opencli"] }
 "npm:@officecli/officecli" = { version = "latest", npm_args = "--ignore-scripts=false" }
-"npm:@openai/codex" = "latest"
 "npm:@lobehub/cli" = "latest"
 
 # Python CLIs installed by mise through uv
@@ -28,6 +32,7 @@ pi = "latest"
 "pypi:jina-cli" = "latest"
 "pypi:ninja" = "latest"
 "pypi:streamrip" = { version = "latest", uvx_args = "--python 3.13" }
+"pypi:yt-dlp" = { version = "latest", extras = "default" }
 
 # CLIs from other mise backends
 "github:redhat-et/ripwire" = "latest"

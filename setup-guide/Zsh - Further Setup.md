@@ -6,7 +6,7 @@ Complete the [base Zsh setup](./Zsh%20-%20setup.md) first. The commands below ta
 
 ```bash
 sudo apt update
-sudo apt install -y gh bubblewrap
+sudo apt install -y bubblewrap
 ```
 
 ## 2. Install mise

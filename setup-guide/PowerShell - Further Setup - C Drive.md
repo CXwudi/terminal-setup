@@ -11,7 +11,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 irm get.scoop.sh | iex
 scoop install git
 scoop bucket add extras
-scoop install yq ast-grep ripgrep lsd fzf gh psmux
+scoop install lsd fzf psmux
 ```
 
 Scoop owns these system CLIs. The repository's helper tasks run directly through mise, installed in step 3.

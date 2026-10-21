@@ -10,7 +10,7 @@ Install [MesloLGS NF using Powerlevel10k's font instructions](https://github.com
 
 ```bash
 sudo apt update
-sudo apt install -y ca-certificates curl git zsh openssh-client ripgrep fzf rsync lsd tmux unzip
+sudo apt install -y ca-certificates curl git zsh openssh-client fzf rsync lsd tmux unzip
 
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 ```

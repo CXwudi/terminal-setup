@@ -9,19 +9,28 @@ node = "lts"
 bun = "latest"
 
 # CLI tools
+ffmpeg = "latest"
+ast-grep = "latest"
+gh = "latest"
+ripgrep = "latest"
+yq = "latest"
 markdownlint-cli2 = "latest"
 antigravity-cli = "latest"
 
 # Node CLIs installed by mise
+"npm:@openai/codex" = { version = "latest", npm_args = "--ignore-scripts=false" }
 "npm:agent-browser" = { version = "latest", npm_args = "--ignore-scripts=false" }
 "npm:@googleworkspace/cli" = { version = "latest", npm_args = "--ignore-scripts=false" }
-"npm:@openai/codex" = { version = "latest", npm_args = "--ignore-scripts=false" }
-"npm:@jackwener/opencli" = { version = "1.8.7", npm_args = "--ignore-scripts=false" }
+# Allow future OpenCLI releases without provenance: https://github.com/jackwener/OpenCLI/issues/2622
+"npm:@jackwener/opencli" = { version = "latest", npm_args = "--ignore-scripts=false", trust_policy_excludes = ["@jackwener/opencli"] }
+"npm:@officecli/officecli" = { version = "latest", npm_args = "--ignore-scripts=false" }
 "npm:@earendil-works/pi-coding-agent" = { version = "latest", npm_args = "--ignore-scripts=false" }
 
 # Python CLIs installed by mise through uv
 "pypi:ast-outline" = "latest"
+"pypi:jina-cli" = "latest"
 "pypi:ninja" = "latest"
+"pypi:yt-dlp" = { version = "latest", extras = "default" }
 
 # CLIs from other mise backends
 "github:redhat-et/ripwire" = "latest"
