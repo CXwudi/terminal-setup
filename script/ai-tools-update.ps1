@@ -37,6 +37,10 @@ try {
     & $miseBin exec -- pi update --extensions
     Check-Exit
 
+    Write-Host "🖥️ Updating cua-driver..." -ForegroundColor Green
+    cua-driver update --apply
+    Check-Exit
+
     Write-Host "✅ All updates complete!" -ForegroundColor Cyan
 }
 finally {

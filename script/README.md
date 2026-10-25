@@ -4,7 +4,7 @@
 
 | Script | Responsibility |
 | --- | --- |
-| [ai-tools-update.ps1](./ai-tools-update.ps1) | Windows: Scoop, portable mise, mise-managed tools, direct uv tools, and Pi extensions |
+| [ai-tools-update.ps1](./ai-tools-update.ps1) | Windows: Scoop, portable mise, mise-managed tools, direct uv tools, Pi extensions, and cua-driver |
 | [ai-tools-update.sh](./ai-tools-update.sh) | Debian/WSL: mise, mise-managed tools, direct uv tools, and Pi extensions |
 | [ai-tools-update.startup.ps1](./ai-tools-update.startup.ps1) | Windows launcher for Task Scheduler, logs, and duplicate-run control |
 
@@ -14,7 +14,7 @@ The updaters run from the user's home directory so a project's mise configuratio
 - `mise upgrade` updates the runtimes and CLIs declared in the global configuration, including uv and `pypi:` tools.
 - `mise exec -- uv tool upgrade --all` updates direct uv installations, currently MinerU if installed.
 - `mise exec -- pi update --extensions` updates Pi extensions.
-- The Windows script also runs `scoop update`, `scoop update '*'`, and `scoop cleanup '*'`.
+- The Windows script also runs `scoop update`, `scoop update '*'`, `scoop cleanup '*'`, and `cua-driver update --apply`.
 
 The scripts stop on a failed step. pnpm and Bun serve project dependencies here; there is no global-package update step. Package-managed mise installations should be updated by their package manager instead of these scripts' portable self-update step.
 
