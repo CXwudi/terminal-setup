@@ -139,7 +139,32 @@ Set the profile's `$gitBashBin` to the installed Git directory if you want Git B
 
 Java uses ordinary Liberica and follows the latest LTS when upgraded. mise maintains the `global` link. Profile activation can set the session's project-specific `JAVA_HOME`; commands needing a complete project environment can use `mise exec -- .\gradlew.bat build`. [Java settings](https://mise.jdx.dev/lang/java.html), [global link](https://mise.jdx.dev/ide-integration.html#a-fixed-path-to-the-global-version)
 
-## 8. Optional Python tools and private variables
+## 8. Install cua-driver
+
+Install `cua-driver`, disable telemetry, and start the background daemon:
+
+```powershell
+# Disable install-time telemetry
+$env:CUA_DRIVER_RS_TELEMETRY_ENABLED = "0"
+
+# Install cua-driver.exe and register the autostart Scheduled Task (accept the UAC prompt)
+irm https://cua.ai/driver/install.ps1 | iex
+
+# Persist telemetry off in %USERPROFILE%\.cua-driver\config.json
+cua-driver telemetry disable
+cua-driver telemetry reset-id
+
+```
+
+Default paths created on `C:`:
+
+- Binary junction (added to User `PATH`): `%LOCALAPPDATA%\Programs\Cua\cua-driver\bin\cua-driver.exe`
+- Package and config home: `%USERPROFILE%\.cua-driver\`
+- Scheduled Task: `cua-driver-serve` (`LogonType=Interactive`, `RunLevel=Highest`)
+
+Avoid `cua-driver skills install`, `cua-driver mcp-config`, and `cua-driver mcp` so `~/.agents/skills` and MCP configurations remain untouched.
+
+## 9. Optional Python tools and private variables
 
 Install MinerU separately only when needed:
 
@@ -157,19 +182,21 @@ mise exec -- uv python install 3.12
 
 Follow the [environment-variable guide](../env_var/) to import private settings from `$HOME/.env_var`.
 
-## 9. Verify and install update scripts
+## 10. Verify and install update scripts
 
 Fully exit and reopen Windows Terminal, the IDE, and other applications that need the persistent environment. In a fresh PowerShell session, check:
 
 ```powershell
 mise ls --current
-Get-Command mise,uv,node,pnpm,bun,java,ast-outline,ninja
+Get-Command mise,uv,node,pnpm,bun,java,ast-outline,ninja,cua-driver
 uv --version
 node --version
 pnpm --version
 java -version
 & (Join-Path $env:JAVA_HOME 'bin\java.exe') -version
 uv tool list
+cua-driver --version
+cua-driver doctor
 ```
 
 Check the inherited base environment without a profile:
