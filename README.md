@@ -10,7 +10,6 @@ Feel free to review and adapt them before use.
 - [Environment variables](./env_var/) — Cross-platform environment-variable setup
 - [Zsh configuration](./zsh-setting/) — Shared environment, login initialization, and interactive configuration examples.
 - [Windows Terminal and PowerShell configuration](./wt-setting/) — PowerShell profile and backup/restore helpers
-- [Update scripts](./script/) — One-shot script for updating all package managers and their installed tools, plus a Windows Task Scheduler guide for automatic updates
 
 ## Tasks
 

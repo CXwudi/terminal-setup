@@ -8,16 +8,6 @@
 | [ai-tools-update.sh](./ai-tools-update.sh) | Debian/WSL: mise, mise-managed tools, direct uv tools, and Pi extensions |
 | [ai-tools-update.startup.ps1](./ai-tools-update.startup.ps1) | Windows launcher for Task Scheduler, logs, and duplicate-run control |
 
-The updaters run from the user's home directory so a project's mise configuration does not select the tools being updated. mise-managed commands run through `mise exec`.
-
-- `mise self-update -y` updates the portable mise installation.
-- `mise upgrade` updates the runtimes and CLIs declared in the global configuration, including uv and `pypi:` tools.
-- `mise exec -- uv tool upgrade --all` updates direct uv installations, currently MinerU if installed.
-- `mise exec -- pi update --extensions` updates Pi extensions.
-- The Windows script also runs `scoop update`, `scoop update '*'`, `scoop cleanup '*'`, and `cua-driver update --apply`.
-
-The scripts stop on a failed step. pnpm and Bun serve project dependencies here; there is no global-package update step. Package-managed mise installations should be updated by their package manager instead of these scripts' portable self-update step.
-
 ## Install on Windows
 
 Run from the repository root after completing the selected Windows setup. Choose the same bin directory used for portable mise:
@@ -61,7 +51,3 @@ install -m 755 script/ai-tools-update.sh "$HOME/.local/bin/ai-tools-update.sh"
 ```
 
 Run `ai-tools-update.sh` for a manual update. It uses `~/.local/bin/mise` from the official installer, with a PATH lookup fallback for a custom installation. This repository does not create a Linux scheduled task.
-
-## Remove US English
-
-[remove-us-english.ps1](./remove-us-english.ps1) removes the English (US) layout sometimes added by Apex Legends while preserving the other language layouts.
