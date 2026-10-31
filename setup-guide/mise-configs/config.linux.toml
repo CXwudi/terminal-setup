@@ -15,7 +15,6 @@ gh = "latest"
 ripgrep = "latest"
 yq = "latest"
 markdownlint-cli2 = "latest"
-antigravity-cli = "latest"
 pi = "latest"
 
 # Node CLIs installed by mise
@@ -36,7 +35,6 @@ pi = "latest"
 
 # CLIs from other mise backends
 "github:redhat-et/ripwire" = "latest"
-"github:jgraph/drawio-desktop" = { version = "latest", asset_pattern = "drawio-x86_64-*.AppImage", bin = "drawio" }
 
 [settings]
 java.shorthand_vendor = "liberica"

@@ -15,7 +15,6 @@ gh = "latest"
 ripgrep = "latest"
 yq = "latest"
 markdownlint-cli2 = "latest"
-antigravity-cli = "latest"
 
 # Node CLIs installed by mise
 "npm:@openai/codex" = { version = "latest", npm_args = "--ignore-scripts=false" }
@@ -34,7 +33,6 @@ antigravity-cli = "latest"
 
 # CLIs from other mise backends
 "github:redhat-et/ripwire" = "latest"
-"github:jgraph/drawio-desktop" = "latest"
 
 [settings]
 java.shorthand_vendor = "liberica"
