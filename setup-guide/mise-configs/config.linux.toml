@@ -35,6 +35,10 @@ pi = "latest"
 
 # CLIs from other mise backends
 "github:redhat-et/ripwire" = "latest"
+"conda:mediainfo" = "latest"
 
 [settings]
 java.shorthand_vendor = "liberica"
+
+[settings.self_update]
+auto = true
