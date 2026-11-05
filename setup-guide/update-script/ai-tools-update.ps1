@@ -28,9 +28,19 @@ try {
     Check-Exit
     & $miseBin upgrade
     Check-Exit
+    & $miseBin prune --tools -y
+    Check-Exit
+
+    Write-Host "📦 Updating tools managed directly by pnpm..." -ForegroundColor Green
+    & $miseBin exec -- pnpm update --global --latest
+    Check-Exit
+    & $miseBin exec -- pnpm store prune
+    Check-Exit
 
     Write-Host "🐍 Updating tools managed directly by uv..." -ForegroundColor Green
     & $miseBin exec -- uv tool upgrade --all
+    Check-Exit
+    & $miseBin exec -- uv cache prune
     Check-Exit
 
     Write-Host "🤖 Updating Pi extensions..." -ForegroundColor Green
